@@ -5,6 +5,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "6.1.0"
     id("io.micronaut.application") version "1.4.2"
     id("com.google.protobuf") version "0.8.13"
+    id ("org.jetbrains.kotlin.plugin.jpa") version "1.4.31"
 }
 
 version = "0.1"
@@ -33,6 +34,10 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     testImplementation("io.micronaut:micronaut-http-client")
+    //Database imports
+    implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
+    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    runtimeOnly("com.h2database:h2")
 }
 
 
@@ -74,4 +79,8 @@ protobuf {
     generateProtoTasks {
         all()*.plugins { grpc {} }
     }
+}
+
+allOpen{
+    annotation("javax.inject.Singleton")
 }

@@ -18,3 +18,7 @@ jpa:
         hbm2ddl:
           auto: update
         show_sql: true
+
+client:
+  itau:
+    contas: ${ITAU_CONTAS_URL:`http://localhost:9091/api/v1`}

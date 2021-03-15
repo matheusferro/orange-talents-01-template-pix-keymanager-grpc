@@ -11,10 +11,15 @@ service KeyManagerService {
   rpc cadastroChave (KeyManagerRequest) returns (KeyManagerResponse) {}
 }
 
+message DetalheError{
+  int32 codigo = 1;
+  string mensagem = 2;
+}
+
 enum TipoConta{
   DESCONHECIDA = 0;
-  POUPANCA = 1;
-  CORRENTE = 2;
+  CONTA_POUPANCA = 1;
+  CONTA_CORRENTE = 2;
 }
 
 enum TipoChave{

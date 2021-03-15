@@ -38,6 +38,10 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     runtimeOnly("com.h2database:h2")
+    //client http
+    implementation('io.micronaut:micronaut-http-client')
+    //Adicionado para validacoes. https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
+    implementation("org.hibernate:hibernate-validator:7.0.1.Final")
 }
 
 

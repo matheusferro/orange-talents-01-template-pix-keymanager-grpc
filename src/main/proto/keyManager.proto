@@ -31,7 +31,7 @@ enum TipoChave{
 }
 
 message KeyManagerRequest {
-  string clientId = 1;
+  string clienteId = 1;
   TipoChave tipoChave = 2;
   string chave = 3;
   TipoConta tipoConta = 4;

@@ -4,7 +4,7 @@ import br.com.zup.KeyManagerRequest
 
 fun KeyManagerRequest.toModel(): NovaChavePix {
     return NovaChavePix(
-        this.clientId,
+        this.clienteId,
         (br.com.zup.chave.TipoChaveComValida.valueOf(tipoChave.name)),
         this.chave,
         this.tipoConta,

@@ -4,7 +4,7 @@ import br.com.zup.DeleteKeyResponse
 import br.com.zup.DetalheError
 import br.com.zup.KeyManagerResponse
 import br.com.zup.chave.cadastro.NovaChavePix
-import br.com.zup.clients.ItauClient
+import br.com.zup.clients.itau.ItauClient
 import br.com.zup.validacoes.UUIDValido
 import com.google.protobuf.Any
 import com.google.rpc.Code

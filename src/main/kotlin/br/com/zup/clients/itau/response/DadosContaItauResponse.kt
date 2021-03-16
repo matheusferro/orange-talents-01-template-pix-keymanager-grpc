@@ -1,4 +1,4 @@
-package br.com.zup.clients.response
+package br.com.zup.clients.itau.response
 
 import br.com.zup.TipoConta
 import br.com.zup.chave.cadastro.Conta

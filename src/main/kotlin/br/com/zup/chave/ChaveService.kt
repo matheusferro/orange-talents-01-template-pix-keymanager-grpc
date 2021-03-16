@@ -1,27 +1,32 @@
-package br.com.zup.chave.cadastro
+package br.com.zup.chave
 
+import br.com.zup.DeleteKeyResponse
 import br.com.zup.DetalheError
 import br.com.zup.KeyManagerResponse
-import br.com.zup.chave.ChaveRepository
+import br.com.zup.chave.cadastro.NovaChavePix
 import br.com.zup.clients.ItauClient
+import br.com.zup.validacoes.UUIDValido
 import com.google.protobuf.Any
+import com.google.rpc.Code
 import com.google.rpc.Status
 import io.grpc.protobuf.StatusProto
 import io.grpc.stub.StreamObserver
 import io.micronaut.validation.Validated
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.inject.Singleton
 import javax.transaction.Transactional
 import javax.validation.Valid
+import javax.validation.constraints.NotBlank
 
 @Validated
 @Singleton
-class CadastroNovaChaveService(
+class ChaveService(
     val chaveRepository: ChaveRepository,
     val itauClient: ItauClient
 ) {
 
-    private val logger = LoggerFactory.getLogger(CadastroNovaChaveService::class.java)
+    private val logger = LoggerFactory.getLogger(ChaveService::class.java)
 
     @Transactional
     fun cadastro(@Valid novaChavePix: NovaChavePix, responseObserver: StreamObserver<KeyManagerResponse>): String {
@@ -58,5 +63,37 @@ class CadastroNovaChaveService(
 
         //retorna id interno
         return chave.id.toString()
+    }
+
+    @Transactional
+    fun removerChavePix(
+        @NotBlank @UUIDValido idPix: String,
+        @NotBlank @UUIDValido clienteId: String,
+        responseObserver: StreamObserver<DeleteKeyResponse>
+    ) {
+        logger.info("2- Verificando existencia de chave pix.")
+
+        //verifica resultado com nossa base com CPF, e id pix
+        val dadosChavePix: ChavePix? =
+            chaveRepository.findByIdAndClienteId(UUID.fromString(idPix), clienteId)
+
+        if (dadosChavePix == null) {
+            logger.warn("Chave pix nao encontrada.")
+            val notExistsErro = Status.newBuilder()
+                .setCode(Code.NOT_FOUND_VALUE)
+                .setMessage("Não foi possível excluir chave pix.")
+                .addDetails(
+                    com.google.protobuf.Any.pack(
+                        DetalheError.newBuilder()
+                            .setCodigo(404)
+                            .setMensagem("Não foi encontrado chave pix para esse cliente.")
+                            .build()
+                    )
+                ).build()
+            responseObserver.onError(StatusProto.toStatusRuntimeException(notExistsErro))
+            return
+        }
+        chaveRepository.delete(dadosChavePix)
+        logger.info("4- Chave deletada.")
     }
 }

@@ -9,6 +9,7 @@ package br.com.zup;
 
 service KeyManagerService {
   rpc cadastroChave (KeyManagerRequest) returns (KeyManagerResponse) {}
+  rpc deletarChave  (DeleteKeyRequest)  returns (DeleteKeyResponse) {}
 }
 
 message DetalheError{
@@ -39,4 +40,14 @@ message KeyManagerRequest {
 
 message KeyManagerResponse {
   string idPix = 1;
+}
+
+message DeleteKeyRequest {
+  string idPix = 1;
+  string clienteId = 2;
+}
+
+message DeleteKeyResponse {
+  string idPix = 1;
+  string clienteId = 2;
 }

@@ -26,4 +26,8 @@ class Conta(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val tipoConta: TipoConta
-)
+){
+    companion object {
+        val ITAU_UNIBANCO_ISPB: String = "60701190"
+    }
+}

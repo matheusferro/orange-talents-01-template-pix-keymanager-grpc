@@ -4,6 +4,8 @@ import br.com.zup.DeleteKeyResponse
 import br.com.zup.DetalheError
 import br.com.zup.KeyManagerResponse
 import br.com.zup.chave.cadastro.NovaChavePix
+import br.com.zup.clients.bancoCentral.BancoCentralClient
+import br.com.zup.clients.bancoCentral.request.DeletePixKeyRequest
 import br.com.zup.clients.itau.ItauClient
 import br.com.zup.validacoes.UUIDValido
 import com.google.protobuf.Any
@@ -11,6 +13,7 @@ import com.google.rpc.Code
 import com.google.rpc.Status
 import io.grpc.protobuf.StatusProto
 import io.grpc.stub.StreamObserver
+import io.micronaut.http.HttpStatus
 import io.micronaut.validation.Validated
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -23,7 +26,8 @@ import javax.validation.constraints.NotBlank
 @Singleton
 class ChaveService(
     val chaveRepository: ChaveRepository,
-    val itauClient: ItauClient
+    val itauClient: ItauClient,
+    val bacenClient: BancoCentralClient
 ) {
 
     private val logger = LoggerFactory.getLogger(ChaveService::class.java)
@@ -57,10 +61,32 @@ class ChaveService(
         //toModel da resposta do itau e verificacao
         val conta = dadosContaItau?.toModel() ?: throw IllegalStateException("Cliente não encontrado")
 
-        //cadastro
-        val chave = novaChavePix.toModel(conta)
-        chaveRepository.save(chave)
+        //Cadastro chave no Banco central
+        val requestBacen = novaChavePix.toRequestBacen(conta)
+        val responseBacen =
+            bacenClient.cadastrarChaveBancoCentral(requestBacen).also { logger.info("4- Cadastro no bancoCentral.") }
 
+        if (responseBacen.status != HttpStatus.CREATED) {
+            //TODO: throw ExceptionNotCreatedBacen()
+            logger.warn("Chave existente !")
+            val chaveExistente = Status.newBuilder()
+                .setCode(Code.ALREADY_EXISTS.number)
+                .setMessage("Não foi possível realizar o cadastro")
+                .addDetails(
+                    Any.pack(
+                        DetalheError.newBuilder()
+                            .setCodigo(422)
+                            .setMensagem("Chave já cadastrada.")
+                            .build()
+                    )
+                ).build()
+
+            responseObserver.onError(StatusProto.toStatusRuntimeException(chaveExistente))
+            return "chave existente."
+        }
+        //cadastro
+        val chave = novaChavePix.toModel(conta, responseBacen.body()!!.key)
+        chaveRepository.save(chave)
         //retorna id interno
         return chave.id.toString()
     }
@@ -79,6 +105,7 @@ class ChaveService(
 
         if (dadosChavePix == null) {
             logger.warn("Chave pix nao encontrada.")
+            //TODO: throw ExceptionNotFoundPixKey
             val notExistsErro = Status.newBuilder()
                 .setCode(Code.NOT_FOUND_VALUE)
                 .setMessage("Não foi possível excluir chave pix.")
@@ -93,7 +120,17 @@ class ChaveService(
             responseObserver.onError(StatusProto.toStatusRuntimeException(notExistsErro))
             return
         }
+        //Deletar do banco central
+        val deleteResponse =
+            bacenClient.deletarChaveBancoCentral(dadosChavePix.chave, DeletePixKeyRequest(dadosChavePix.chave))
+                .also { logger.info("4- Deletando chave do banco central.") }
+
+        if (deleteResponse.status != HttpStatus.OK) {
+            //TODO Exception throw :Não foi possivel deletar
+            throw IllegalStateException("Não foi possivel deletar")
+        }
+
         chaveRepository.delete(dadosChavePix)
-        logger.info("4- Chave deletada.")
+        logger.info("Chave deletada.")
     }
 }

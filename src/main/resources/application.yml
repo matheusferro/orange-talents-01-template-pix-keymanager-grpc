@@ -22,3 +22,5 @@ jpa:
 client:
   itau:
     contas: ${ITAU_CONTAS_URL:`http://localhost:9091/api/v1`}
+  bancoCentral:
+    pix: ${BACEN_PIX_URL:`http://localhost:8082/api/v1/pix`}

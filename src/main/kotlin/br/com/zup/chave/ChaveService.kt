@@ -1,17 +1,15 @@
 package br.com.zup.chave
 
 import br.com.zup.DeleteKeyResponse
-import br.com.zup.DetalheError
 import br.com.zup.KeyManagerResponse
 import br.com.zup.chave.cadastro.NovaChavePix
 import br.com.zup.clients.bancoCentral.BancoCentralClient
 import br.com.zup.clients.bancoCentral.request.DeletePixKeyRequest
 import br.com.zup.clients.itau.ItauClient
+import br.com.zup.exceptionsHandlers.exceptions.CreateKeyPixBacenFailed
+import br.com.zup.exceptionsHandlers.exceptions.ExistsKeyException
+import br.com.zup.exceptionsHandlers.exceptions.NotFoundKeyException
 import br.com.zup.validacoes.UUIDValido
-import com.google.protobuf.Any
-import com.google.rpc.Code
-import com.google.rpc.Status
-import io.grpc.protobuf.StatusProto
 import io.grpc.stub.StreamObserver
 import io.micronaut.http.HttpStatus
 import io.micronaut.validation.Validated
@@ -37,20 +35,7 @@ class ChaveService(
 
         if (chaveRepository.existsByChave(novaChavePix.chave)) {
             logger.warn("Chave existente !")
-            val chaveExistente = Status.newBuilder()
-                .setCode(com.google.rpc.Code.ALREADY_EXISTS.number)
-                .setMessage("Não foi possível realizar o cadastro")
-                .addDetails(
-                    Any.pack(
-                        DetalheError.newBuilder()
-                            .setCodigo(422)
-                            .setMensagem("Chave já cadastrada.")
-                            .build()
-                    )
-                ).build()
-
-            responseObserver.onError(StatusProto.toStatusRuntimeException(chaveExistente))
-            return "chave existente."
+            throw ExistsKeyException("Chave já existente.")
         }
 
         //Busca dados cliente - itau
@@ -67,26 +52,13 @@ class ChaveService(
             bacenClient.cadastrarChaveBancoCentral(requestBacen).also { logger.info("4- Cadastro no bancoCentral.") }
 
         if (responseBacen.status != HttpStatus.CREATED) {
-            //TODO: throw ExceptionNotCreatedBacen()
-            logger.warn("Chave existente !")
-            val chaveExistente = Status.newBuilder()
-                .setCode(Code.ALREADY_EXISTS.number)
-                .setMessage("Não foi possível realizar o cadastro")
-                .addDetails(
-                    Any.pack(
-                        DetalheError.newBuilder()
-                            .setCodigo(422)
-                            .setMensagem("Chave já cadastrada.")
-                            .build()
-                    )
-                ).build()
-
-            responseObserver.onError(StatusProto.toStatusRuntimeException(chaveExistente))
-            return "chave existente."
+            throw CreateKeyPixBacenFailed("Não foi possivel realizar o cadastro da chave pix.")
         }
+
         //cadastro
         val chave = novaChavePix.toModel(conta, responseBacen.body()!!.key)
         chaveRepository.save(chave)
+
         //retorna id interno
         return chave.id.toString()
     }
@@ -103,30 +75,14 @@ class ChaveService(
         val dadosChavePix: ChavePix? =
             chaveRepository.findByIdAndClienteId(UUID.fromString(idPix), clienteId)
 
-        if (dadosChavePix == null) {
-            logger.warn("Chave pix nao encontrada.")
-            //TODO: throw ExceptionNotFoundPixKey
-            val notExistsErro = Status.newBuilder()
-                .setCode(Code.NOT_FOUND_VALUE)
-                .setMessage("Não foi possível excluir chave pix.")
-                .addDetails(
-                    com.google.protobuf.Any.pack(
-                        DetalheError.newBuilder()
-                            .setCodigo(404)
-                            .setMensagem("Não foi encontrado chave pix para esse cliente.")
-                            .build()
-                    )
-                ).build()
-            responseObserver.onError(StatusProto.toStatusRuntimeException(notExistsErro))
-            return
-        }
+        dadosChavePix ?: throw NotFoundKeyException("Chave não encontrada para deleção.")
+
         //Deletar do banco central
         val deleteResponse =
             bacenClient.deletarChaveBancoCentral(dadosChavePix.chave, DeletePixKeyRequest(dadosChavePix.chave))
                 .also { logger.info("4- Deletando chave do banco central.") }
 
         if (deleteResponse.status != HttpStatus.OK) {
-            //TODO Exception throw :Não foi possivel deletar
             throw IllegalStateException("Não foi possivel deletar")
         }
 

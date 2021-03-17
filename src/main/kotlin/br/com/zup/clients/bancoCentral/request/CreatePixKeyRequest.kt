@@ -41,7 +41,7 @@ data class BankAccount(
  *
  * @param type              -> Pessoa: [LEGAL_PERSON, NATURAL_PERSON]
  * @param name              -> Nome
- * @param taxIdNumber       -> TODO:~~~
+ * @param taxIdNumber       -> Identificador
  */
 data class Owner(
     val type: String,

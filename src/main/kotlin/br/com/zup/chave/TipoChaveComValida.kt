@@ -40,7 +40,7 @@ enum class TipoChaveComValida {
     TELEFONE_CELULAR {
         override fun valida(chave: String): Boolean {
             //validacao alterada - Sugestao do alefh sousa
-            return (chave.matches(" ^\\+[1-9]{3}[0-9]{9}\\d\$".toRegex()) && chave.isNotBlank())
+            return (chave.matches("^\\+[1-9]{3}[0-9]{9}\\d\$".toRegex()) && chave.isNotBlank())
         }
     },
     ALEATORIA {

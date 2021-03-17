@@ -1,10 +1,12 @@
 package br.com.zup.chave
 
 import br.com.zup.*
+import br.com.zup.exceptionsHandlers.ErrorHandler
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
 import javax.inject.Singleton
 
+@ErrorHandler
 @Singleton
 class ChaveGrpcServer(
     val service: ChaveService

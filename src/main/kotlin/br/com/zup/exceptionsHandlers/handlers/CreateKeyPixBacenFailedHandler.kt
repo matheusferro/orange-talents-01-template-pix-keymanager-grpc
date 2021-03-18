@@ -3,7 +3,9 @@ package br.com.zup.exceptionsHandlers.handlers
 import br.com.zup.exceptionsHandlers.ExceptionHandler
 import br.com.zup.exceptionsHandlers.exceptions.CreateKeyPixBacenFailed
 import io.grpc.Status
+import javax.inject.Singleton
 
+@Singleton
 class CreateKeyPixBacenFailedHandler : ExceptionHandler<CreateKeyPixBacenFailed> {
 
     override fun handle(e: CreateKeyPixBacenFailed): ExceptionHandler.StatusWithDetails {

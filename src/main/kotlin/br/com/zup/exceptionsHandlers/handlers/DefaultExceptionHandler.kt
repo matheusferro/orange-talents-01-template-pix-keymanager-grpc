@@ -2,8 +2,10 @@ package br.com.zup.exceptionsHandlers.handlers
 
 import br.com.zup.exceptionsHandlers.ExceptionHandler
 import io.grpc.Status
+import javax.inject.Singleton
 import javax.validation.ConstraintViolationException
 
+@Singleton
 class DefaultExceptionHandler : ExceptionHandler<Exception> {
     override fun handle(e: Exception): ExceptionHandler.StatusWithDetails {
         val status = when (e) {
@@ -16,7 +18,7 @@ class DefaultExceptionHandler : ExceptionHandler<Exception> {
     }
 
     override fun supports(e: Exception): Boolean {
-        return true
+        return false
     }
 
 }

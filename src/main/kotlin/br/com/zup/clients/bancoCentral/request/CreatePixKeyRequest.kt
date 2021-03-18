@@ -30,10 +30,9 @@ data class CreatePixKeyRequest(
 data class BankAccount(
     val branch: String,
     val accountNumber: String,
-    val accountType: TipoContaBacen
-) {
+    val accountType: TipoContaBacen,
     val participant: String = Conta.ITAU_UNIBANCO_ISPB
-}
+)
 
 /**
  * Classe com informacoes referente ao responsavel da conta,

@@ -7,9 +7,15 @@ option objc_class_prefix = "HLW";
 
 package br.com.zup;
 
+import "google/protobuf/timestamp.proto";
+
 service KeyManagerService {
   rpc cadastroChave (KeyManagerRequest) returns (KeyManagerResponse) {}
   rpc deletarChave  (DeleteKeyRequest)  returns (DeleteKeyResponse) {}
+}
+
+service KeyManagerConsultaService {
+  rpc consultaChavePix (ConsultaChavePixRequest) returns (ConsultaChavePixResponse) {}
 }
 
 message DetalheError{
@@ -50,4 +56,31 @@ message DeleteKeyRequest {
 message DeleteKeyResponse {
   string idPix = 1;
   string clienteId = 2;
+}
+
+message IdPixConsulta{
+  string clienteId = 1;
+  string idPix = 2;
+}
+
+message ConsultaChavePixRequest{
+  IdPixConsulta idPix = 1;
+  string chave = 2;
+}
+
+message DadosConta{
+  string instituicao = 1;
+  string agencia =  2;
+  string numero = 3;
+  TipoConta tipoConta = 4;
+}
+message ConsultaChavePixResponse{
+  string idPix = 1;
+  string clienteId = 2;
+  TipoChave tipoChave = 3;
+  string chave = 4;
+  string nomeTitular = 5;
+  string cpfTitular = 6;
+  DadosConta dadosConta = 7;
+  google.protobuf.Timestamp  criadaEm = 9;
 }

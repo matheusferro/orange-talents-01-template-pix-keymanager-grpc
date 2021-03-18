@@ -44,7 +44,7 @@ class ChaveService(
         logger.info("3- Busca completa. ")
 
         //toModel da resposta do itau e verificacao
-        val conta = dadosContaItau?.toModel() ?: throw IllegalStateException("Cliente não encontrado")
+        val conta = dadosContaItau.body()?.toModel() ?: throw IllegalStateException("Cliente não encontrado")
 
         //Cadastro chave no Banco central
         val requestBacen = novaChavePix.toRequestBacen(conta)

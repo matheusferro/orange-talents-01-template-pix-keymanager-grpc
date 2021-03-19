@@ -1,13 +1,18 @@
 package br.com.zup.chave.consulta
 
+import br.com.zup.ConsultaChavesPixClienteResponse
 import br.com.zup.chave.ChavePix
 import br.com.zup.chave.ChaveRepository
 import br.com.zup.chave.ChaveService
 import br.com.zup.clients.bancoCentral.BancoCentralClient
 import br.com.zup.exceptionsHandlers.exceptions.NotFoundKeyException
+import br.com.zup.validacoes.UUIDValido
+import com.google.protobuf.Timestamp
 import io.micronaut.http.HttpStatus
 import io.micronaut.validation.Validated
 import org.slf4j.LoggerFactory
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoField
 import java.util.*
 import javax.inject.Singleton
 import javax.validation.Valid
@@ -47,5 +52,27 @@ class ConsultaChaveService(
                 }
             }
         }
+    }
+
+    fun buscarChavesCliente(@UUIDValido clienteId: String): ConsultaChavesPixClienteResponse? {
+        val chavesDoCliente = repository.findByClienteId(clienteId)?.map {chave ->
+            ConsultaChavesPixClienteResponse.ChavePixDetalhe.newBuilder()
+                .setIdPix(chave.id.toString())
+
+                .setTipoChave(chave.tipoChave)
+                .setChave(chave.chave)
+                .setTipoConta(chave.tipoConta)
+                .setCriadoEm( Timestamp.newBuilder()
+                    .setSeconds(chave.criadoEm.getLong(ChronoField.SECOND_OF_DAY))
+                    .setNanos(chave.criadoEm.nano)
+                    .build())
+                .build()
+
+        }
+
+        return ConsultaChavesPixClienteResponse.newBuilder()
+            .setClienteId(clienteId)
+            .addAllListaChavePix(chavesDoCliente)
+            .build()
     }
 }

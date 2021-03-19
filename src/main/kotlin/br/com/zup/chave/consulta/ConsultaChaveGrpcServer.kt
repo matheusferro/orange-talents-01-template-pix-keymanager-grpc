@@ -1,8 +1,6 @@
 package br.com.zup.chave.consulta
 
-import br.com.zup.ConsultaChavePixRequest
-import br.com.zup.ConsultaChavePixResponse
-import br.com.zup.KeyManagerConsultaServiceGrpc
+import br.com.zup.*
 import br.com.zup.chave.toModel
 import br.com.zup.exceptionsHandlers.ErrorHandler
 import io.grpc.stub.StreamObserver
@@ -29,6 +27,21 @@ class ConsultaChaveGrpcServer(val service: ConsultaChaveService) :
         var response: ChaveInfo = service.buscarChave(request.toModel())
 
         responseObserver.onNext(ConsultaChavePixResponseConverter().toResponse(response))
+        responseObserver.onCompleted()
+    }
+
+    override fun consultaChavesPixCliente(
+        request: ConsultaChavesPixClienteRequest?,
+        responseObserver: StreamObserver<ConsultaChavesPixClienteResponse>?
+    ) {
+        logger.info("1- Iniciando busca de chaves pix do cliente de id: ${request?.clienteId}")
+        //Verificando se request e response esta null
+        request ?: throw  IllegalArgumentException()
+        responseObserver ?: throw IllegalArgumentException()
+
+        var response = service.buscarChavesCliente(request.clienteId)
+
+        responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
 }

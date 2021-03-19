@@ -16,6 +16,7 @@ service KeyManagerService {
 
 service KeyManagerConsultaService {
   rpc consultaChavePix (ConsultaChavePixRequest) returns (ConsultaChavePixResponse) {}
+  rpc consultaChavesPixCliente (ConsultaChavesPixClienteRequest) returns (ConsultaChavesPixClienteResponse) {}
 }
 
 message DetalheError{
@@ -82,5 +83,21 @@ message ConsultaChavePixResponse{
   string nomeTitular = 5;
   string cpfTitular = 6;
   DadosConta dadosConta = 7;
-  google.protobuf.Timestamp  criadaEm = 9;
+  google.protobuf.Timestamp criadaEm = 9;
+}
+
+message ConsultaChavesPixClienteRequest{
+  string clienteId = 1;
+}
+
+message ConsultaChavesPixClienteResponse{
+  message ChavePixDetalhe{
+    string idPix = 1;
+    TipoChave tipoChave = 2;
+    string chave = 3;
+    TipoConta tipoConta = 4;
+    google.protobuf.Timestamp criadoEm = 5;
+  }
+  string clienteId = 1;
+  repeated ChavePixDetalhe listaChavePix = 2;
 }

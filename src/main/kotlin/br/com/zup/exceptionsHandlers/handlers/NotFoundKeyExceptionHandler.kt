@@ -8,7 +8,6 @@ import javax.inject.Singleton
 @Singleton
 class NotFoundKeyExceptionHandler : ExceptionHandler<NotFoundKeyException> {
     override fun handle(e: NotFoundKeyException): ExceptionHandler.StatusWithDetails {
-        e.printStackTrace()
         return  ExceptionHandler.StatusWithDetails(
             Status.NOT_FOUND
                 .withDescription(e.message)

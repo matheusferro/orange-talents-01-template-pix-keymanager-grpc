@@ -1,15 +1,17 @@
-package br.com.zup.chave
+package br.com.zup.chave.cadastro
 
 import br.com.zup.KeyManagerRequest
 import br.com.zup.KeyManagerServiceGrpc
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
+import br.com.zup.chave.ChaveRepository
 import br.com.zup.chave.builder.BuilderBacen
 import br.com.zup.chave.builder.BuilderItau
 import br.com.zup.clients.bancoCentral.BancoCentralClient
-import br.com.zup.clients.bancoCentral.request.*
+import br.com.zup.clients.bancoCentral.request.TipoChaveBacen
 import br.com.zup.clients.itau.ItauClient
 import io.grpc.ManagedChannel
+import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
@@ -17,8 +19,11 @@ import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.util.*
 import javax.inject.Inject
@@ -26,7 +31,8 @@ import javax.inject.Inject
 
 @MicronautTest(transactional = false)
 internal class CadastroChaveTeste(
-    var grpcClient: KeyManagerServiceGrpc.KeyManagerServiceBlockingStub
+    val grpcClient: KeyManagerServiceGrpc.KeyManagerServiceBlockingStub,
+    val chaveRepository: ChaveRepository
 ) {
 
     @Inject
@@ -37,6 +43,11 @@ internal class CadastroChaveTeste(
 
     private val CLIENTE_ID = UUID.randomUUID()
     private val CLIENTE_CPF = "31069461059"
+
+    @BeforeEach
+    fun before() {
+        chaveRepository.deleteAll()
+    }
 
     @Test
     fun `cadastro chave pix - email`() {
@@ -144,6 +155,34 @@ internal class CadastroChaveTeste(
         with(responseGrpc) {
             assertNotNull(idPix)
         }
+    }
+
+    @Test
+    fun `cadastro chave pix - email existente`() {
+
+        Mockito.`when`(itauClient.buscarDadosContaCliente(CLIENTE_ID.toString(), TipoConta.CONTA_POUPANCA.toString()))
+            .thenReturn(HttpResponse.ok(BuilderItau(CLIENTE_ID, CLIENTE_CPF).dadosContaItauResponse()))
+
+        val mockBacen = BuilderBacen(
+            TipoChaveBacen.EMAIL,
+            "email@teste.com.br",
+            CLIENTE_CPF
+        )
+        Mockito.`when`(bacenClient.cadastrarChaveBancoCentral(mockBacen.dadosCriarChaveBasenRequest()))
+            .thenReturn(HttpResponse.created(mockBacen.dadosCriarChaveBasenResponse()))
+
+        val requestGrpc = KeyManagerRequest.newBuilder()
+            .setClienteId(CLIENTE_ID.toString())
+            .setChave("email@teste.com.br")
+            .setTipoChave(TipoChave.EMAIL)
+            .setTipoConta(TipoConta.CONTA_POUPANCA)
+            .build()
+        //Cadastro da primeira chave sem erro.
+        grpcClient.cadastroChave(requestGrpc)
+
+        //Cadastro da chave repetida.
+        val exception = assertThrows<StatusRuntimeException> { grpcClient.cadastroChave(requestGrpc) }
+        assertEquals("ALREADY_EXISTS: Chave já existente.", exception.message)
     }
 
     //Definindo mock do client do banco central

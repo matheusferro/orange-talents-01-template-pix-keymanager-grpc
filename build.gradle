@@ -42,6 +42,7 @@ dependencies {
     implementation('io.micronaut:micronaut-http-client')
     //Adicionado para validacoes. https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
     implementation("org.hibernate:hibernate-validator:7.0.1.Final")
+    implementation('br.com.caelum.stella:caelum-stella-core:2.1.2')
     //Serializador xml
     implementation("io.micronaut.xml:micronaut-jackson-xml")
     //Imports de para realizar testes
@@ -49,6 +50,8 @@ dependencies {
     testImplementation("org.mockito:mockito-core")
     testImplementation("org.hamcrest:hamcrest-core:2.2")
     testImplementation("org.testcontainers:junit-jupiter")
+    //para teste parametrizado
+    testCompile("org.junit.jupiter:junit-jupiter-params:5.7.0")
 }
 
 

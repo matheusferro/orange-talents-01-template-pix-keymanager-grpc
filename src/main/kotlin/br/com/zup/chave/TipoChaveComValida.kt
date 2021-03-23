@@ -1,7 +1,7 @@
 package br.com.zup.chave
 
+import br.com.caelum.stella.validation.CPFValidator
 import io.micronaut.validation.validator.constraints.EmailValidator
-import org.hibernate.validator.internal.constraintvalidators.hv.br.CPFValidator
 
 /**
  * Enum com método destinado a validacoes
@@ -20,15 +20,12 @@ enum class TipoChaveComValida {
                 return false
             }
 
-            return CPFValidator().run {
-                initialize(null)
-                isValid(chave, null)
-            }
+            return CPFValidator().invalidMessagesFor(chave).isEmpty()
         }
     },
     EMAIL {
         override fun valida(chave: String): Boolean {
-            if (chave.isBlank()) {
+            if (chave.isBlank() || !chave.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}\$".toRegex())) {
                 return false
             }
             return EmailValidator().run {

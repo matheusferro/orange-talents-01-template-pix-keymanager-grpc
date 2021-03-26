@@ -3,10 +3,9 @@ package br.com.zup.chave.remocao
 import br.com.zup.DeleteKeyRequest
 import br.com.zup.KeyManagerServiceGrpc
 import br.com.zup.TipoChave
-import br.com.zup.TipoConta
 import br.com.zup.chave.ChavePix
 import br.com.zup.chave.ChaveRepository
-import br.com.zup.chave.cadastro.Conta
+import br.com.zup.chave.builder.ChavePixEntity.Companion.chavePixEntity
 import br.com.zup.clients.bancoCentral.BancoCentralClient
 import br.com.zup.clients.bancoCentral.request.DeletePixKeyRequest
 import io.micronaut.http.HttpResponse
@@ -36,7 +35,7 @@ internal class RemoverChaveTeste(
     @BeforeEach
     fun setup() {
         CHAVE_PIX = chaveRepository.save(
-            chavePixEntity(clienteId = CLIENTE_ID, tipoChave = TipoChave.CPF, chave = CLIENTE_CPF)
+            chavePixEntity(clienteCPF = CLIENTE_CPF,clienteId = CLIENTE_ID, tipoChave = TipoChave.CPF, chave = CLIENTE_CPF)
         )
     }
 
@@ -55,26 +54,6 @@ internal class RemoverChaveTeste(
             Assertions.assertNotNull(idPix)
             Assertions.assertNotNull(clienteId)
         }
-    }
-
-    private fun chavePixEntity(
-        clienteId: String,
-        tipoChave: TipoChave,
-        chave: String
-    ): ChavePix {
-        return ChavePix(
-            clienteId,
-            tipoChave,
-            chave,
-            conta = Conta(
-                "Classe Teste",
-                CLIENTE_CPF,
-                "TESTE",
-                "0001",
-                "000000000",
-                TipoConta.CONTA_POUPANCA
-            )
-        )
     }
 
     @MockBean(BancoCentralClient::class)

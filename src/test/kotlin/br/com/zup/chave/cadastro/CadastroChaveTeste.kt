@@ -10,8 +10,11 @@ import br.com.zup.chave.builder.BuilderItau
 import br.com.zup.clients.bancoCentral.BancoCentralClient
 import br.com.zup.clients.bancoCentral.request.TipoChaveBacen
 import br.com.zup.clients.itau.ItauClient
+import com.google.rpc.BadRequest
 import io.grpc.ManagedChannel
+import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import io.grpc.protobuf.StatusProto
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
@@ -19,6 +22,8 @@ import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -73,6 +78,7 @@ internal class CadastroChaveTeste(
         val responseGrpc = grpcClient.cadastroChave(requestGrpc)
         with(responseGrpc) {
             assertNotNull(idPix)
+            assert(chaveRepository.existsById(UUID.fromString(idPix)))
         }
     }
 
@@ -100,6 +106,7 @@ internal class CadastroChaveTeste(
         val responseGrpc = grpcClient.cadastroChave(requestGrpc)
         with(responseGrpc) {
             assertNotNull(idPix)
+            assert(chaveRepository.existsById(UUID.fromString(idPix)))
         }
     }
 
@@ -127,6 +134,7 @@ internal class CadastroChaveTeste(
         val responseGrpc = grpcClient.cadastroChave(requestGrpc)
         with(responseGrpc) {
             assertNotNull(idPix)
+            assert(chaveRepository.existsById(UUID.fromString(idPix)))
         }
     }
 
@@ -154,6 +162,7 @@ internal class CadastroChaveTeste(
         val responseGrpc = grpcClient.cadastroChave(requestGrpc)
         with(responseGrpc) {
             assertNotNull(idPix)
+            assert(chaveRepository.existsById(UUID.fromString(idPix)))
         }
     }
 

@@ -191,7 +191,72 @@ internal class CadastroChaveTeste(
 
         //Cadastro da chave repetida.
         val exception = assertThrows<StatusRuntimeException> { grpcClient.cadastroChave(requestGrpc) }
-        assertEquals("ALREADY_EXISTS: Chave já existente.", exception.message)
+
+        with(exception) {
+            assertEquals("ALREADY_EXISTS: Chave já existente.", this.message)
+            assertEquals(Status.ALREADY_EXISTS.code, status.code)
+            assertEquals("Chave já existente.", status.description)
+        }
+    }
+
+
+    @Test
+    fun `nao deve cadastrar chave pix - dados invalidos (passando somente cliente id)`() {
+
+        val requestGrpc = KeyManagerRequest.newBuilder()
+            .setClienteId(CLIENTE_ID.toString())
+            .build()
+
+        //Cadastro da chave repetida.
+        val exception = assertThrows<StatusRuntimeException> { grpcClient.cadastroChave(requestGrpc) }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, this.status.code)
+            assertEquals("Valores invalidos.", status.description)
+            assertThat(
+                violations(), Matchers.containsInAnyOrder(
+                    Pair("novaChavePix", "Chave pix inválida para o respectivo tipo.")
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `nao deve cadastrar chave pix - dados invalidos(passando somente tipo da chave)`() {
+
+        val requestGrpc = KeyManagerRequest.newBuilder()
+            //.setClienteId(CLIENTE_ID.toString())
+            .setTipoChave(TipoChave.EMAIL)
+            .build()
+
+        //Cadastro da chave repetida.
+        val exception = assertThrows<StatusRuntimeException> { grpcClient.cadastroChave(requestGrpc) }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, this.status.code)
+            assertEquals("Valores invalidos.", status.description)
+
+            assertThat(
+                this.violations(),
+                Matchers.containsInAnyOrder(
+                    Pair("novaChavePix", "Chave pix inválida para o respectivo tipo."),
+                    Pair("clientId", "must not be blank"),
+                    Pair(
+                        "clientId",
+                        "must match \"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\""
+                    )
+                )
+            )
+        }
+    }
+
+    fun StatusRuntimeException.violations(): List<Pair<String, String>> {
+        val details = StatusProto
+            .fromThrowable(this)
+            ?.detailsList?.get(0)!!
+            .unpack(BadRequest::class.java)
+
+        return details.fieldViolationsList.map { it.field to it.description }
     }
 
     //Definindo mock do client do banco central

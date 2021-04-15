@@ -52,6 +52,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     //para teste parametrizado
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
+    implementation("org.postgresql:postgresql")
 }
 
 
